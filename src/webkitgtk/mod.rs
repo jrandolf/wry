@@ -967,6 +967,20 @@ impl InnerWebView {
       return Ok(bounds);
     }
 
+    if let Some(fixed) = self
+      .webview
+      .parent()
+      .and_then(|p| p.downcast::<gtk::Fixed>().ok())
+    {
+      // What `put` and `set_bounds` stored: the allocation only follows on the next layout pass.
+      let x = fixed.child_property::<i32>(&self.webview, "x");
+      let y = fixed.child_property::<i32>(&self.webview, "y");
+      let (width, height) = self.webview.size_request();
+      bounds.position = LogicalPosition::new(x, y).into();
+      bounds.size = LogicalSize::new(width, height).into();
+      return Ok(bounds);
+    }
+
     let (size, _) = self.webview.allocated_size();
     bounds.size = LogicalSize::new(size.width(), size.height()).into();
 
